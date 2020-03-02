@@ -5,3 +5,4 @@ jupyter
 notebook
 Sphinx
 flake8
+jupyter-contrib-nbextensions

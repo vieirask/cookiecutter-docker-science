@@ -4,11 +4,15 @@ FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
 FROM ubuntu:18.04
 {%- endif %}
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update
+
+RUN apt-get install -y \
   git \
   python3.6 \
   python3-pip \
   python3.6-dev \
+
+RUN apt-get install -y \
   openssh-server \
   less \
   vim \
@@ -19,7 +23,6 @@ RUN pip3 install --upgrade pip
 COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
-RUN python3 -c "import nltk; nltk.download('punkt')"
 RUN jupyter contrib nbextension install
 RUN jupyter nbextensions_configurator enable
 

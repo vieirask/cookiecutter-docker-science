@@ -2,7 +2,7 @@
     "project_name": "project_name",
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
     "jupyter_host_port": "8888",
-    "ssh_host_port": "111111",
+    "ssh_host_port": "11111",
     "description": "Please Input a short description",
     "data_source_type": ["s3", "nfs", "url"],
     "data_source": "Please Input data source",
