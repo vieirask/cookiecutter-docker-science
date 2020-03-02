@@ -42,7 +42,7 @@ fi
 endef
 
 define START_SSH_DOCKER_CONTAINER
-if [ `$(DOCKER) inspect -f {{.State.Running}} $(SSH_CONTAINER_NAME)` = "false" ] ; then
+if [ `$(DOCKER) inspect -f {% raw -%}{{.State.Running}}{%- endraw %} $(SSH_CONTAINER_NAME)` = "false" ] ; then
         $(DOCKER) start $(SSH_CONTAINER_NAME)
 fi
 endef
