@@ -10,7 +10,7 @@ RUN apt-get install -y \
   git \
   python3.6 \
   python3-pip \
-  python3.6-dev \
+  python3.6-dev
 
 RUN apt-get install -y \
   openssh-server \
