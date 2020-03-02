@@ -41,6 +41,12 @@ if [ `$(DOCKER) inspect -f {% raw -%}{{.State.Running}}{%- endraw %} $(CONTAINER
 fi
 endef
 
+define START_SSH_DOCKER_CONTAINER
+if [ `$(DOCKER) inspect -f {{.State.Running}} $(SSH_CONTAINER_NAME)` = "false" ] ; then
+        $(DOCKER) start $(SSH_CONTAINER_NAME)
+fi
+endef
+
 ###########################################################################################################
 ## VARIABLES
 ###########################################################################################################
@@ -63,6 +69,12 @@ export JUPYTER_HOST_PORT={{ cookiecutter.jupyter_host_port }}
 export JUPYTER_CONTAINER_PORT=8888
 export PYTHON=python3
 export DOCKERFILE=docker/Dockerfile
+export START_SSH_DOCKER_CONTAINER
+export SSH_DOCKERFILE=docker/SSHDockerfile
+export SSH_IMAGE_NAME=$(PROJECT_NAME)-ssh-image
+export SSH_CONTAINER_NAME=$(PROJECT_NAME)-ssh-container
+export SSH_HOST_PORT={{ cookiecutter.ssh_host_port }}
+export SSH_CONTAINER_PORT=22
 
 ###########################################################################################################
 ## ADD TARGETS SPECIFIC TO "{{ cookiecutter.project_name }}"
@@ -93,6 +105,9 @@ init-docker: ## initialize docker image
 init-docker-no-cache: ## initialize docker image without cachhe
 	$(DOCKER) build --no-cache -t $(IMAGE_NAME) -f $(DOCKERFILE) --build-arg UID=$(shell id -u) .
 
+init-ssh-docker: ## initialize docker image
+	$(DOCKER) build -t $(SSH_IMAGE_NAME) -f $(SSH_DOCKERFILE) --build-arg UID=$(shell id -u) .
+
 sync-to-source: ## sync local data to data source
 {%- if cookiecutter.data_source_type == 's3' %}
 	-aws s3 sync ./data/ $(DATA_SOURCE)
@@ -109,6 +124,14 @@ start-container: ## start docker container
 	@echo "$$START_DOCKER_CONTAINER" | $(SHELL)
 	@echo "Launched $(CONTAINER_NAME)..."
 	$(DOCKER) attach $(CONTAINER_NAME)
+
+create-ssh-container: ## create docker container
+	$(DOCKER) run -d -v $(PWD):/work -p $(JUPYTER_HOST_PORT):$(JUPYTER_CONTAINER_PORT) -p $(SSH_HOST_PORT):$(SSH_CONTAINER_PORT) --name $(SSH_CONTAINER_NAME) $(SSH_IMAGE_NAME)
+
+start-ssh-container: ## start docker container
+	@echo "$$START_SSH_DOCKER_CONTAINER" | $(SHELL)
+	@echo "Launched $(SSH_CONTAINER_NAME)..."
+	$(DOCKER) attach $(SSH_CONTAINER_NAME)
 
 jupyter: ## start Jupyter Notebook server
 	jupyter-notebook --ip=0.0.0.0 --port=${JUPYTER_CONTAINER_PORT}
@@ -148,3 +171,11 @@ clean-container: ## remove Docker container
 
 clean-image: ## remove Docker image
 	-$(DOCKER) image rm $(IMAGE_NAME)
+
+clean-ssh-docker: clean-ssh-container clean-ssh-image ## remove Docker image and container
+
+clean-ssh-container: ## remove Docker container
+	-$(DOCKER) rm $(SSH_CONTAINER_NAME)
+
+clean-ssh-image: ## remove Docker image
+	-$(DOCKER) image rm $(SSH_IMAGE_NAME)
